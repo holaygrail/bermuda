@@ -232,3 +232,22 @@ async def test_scanner_resolves_real_registry(
     assert bermuda_scanner.address_ble_mac == "11:22:33:44:55:66"
     assert bermuda_scanner.name_devreg == "esphome"
     assert "uses `device_registry.devices`" not in caplog.text
+
+@pytest.mark.parametrize(
+    ("first_char", "expected"),
+    [(c, "bd_addr_random_unresolvable") for c in "0123"]
+    + [(c, "bd_addr_random_resolvable") for c in "4567"]
+    + [(c, "reserved") for c in "89ab"]
+    + [(c, "bd_addr_random_static") for c in "cdef"],
+)
+def test_address_type_classifier_uses_the_top_two_bits(mock_coordinator, first_char, expected):
+    """Regression: the classifier tested the top two bits with `&` where it
+    meant `==`, so 0b00 addresses stayed unknown, every random-static (0b11)
+    address was labelled resolvable and handed to the IRK resolver, and
+    BDADDR_TYPE_RANDOM_STATIC was never assigned at all."""
+    device = BermudaDevice(address=f"{first_char}a:bb:cc:dd:ee:ff", coordinator=mock_coordinator)
+    assert device.address_type == expected
+    if expected == "bd_addr_random_resolvable":
+        mock_coordinator.irk_manager.check_mac.assert_called_once_with(f"{first_char}a:bb:cc:dd:ee:ff")
+    else:
+        mock_coordinator.irk_manager.check_mac.assert_not_called()
