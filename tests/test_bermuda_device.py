@@ -75,7 +75,7 @@ def test_scanner_resolves_wifi_mac_before_announcing(bermuda_scanner, mock_coord
     without per-scanner entities until a reload.
     """
     wifi_mac = "11:22:33:44:55:64"
-    mock_coordinator.dr.devices.get_entries.return_value = [
+    mock_coordinator.dr.async_get_devices.return_value = [
         SimpleNamespace(
             id="shelly_device",
             name="Shelly",
@@ -90,6 +90,7 @@ def test_scanner_resolves_wifi_mac_before_announcing(bermuda_scanner, mock_coord
     bermuda_scanner.async_as_scanner_init(mock_remote_scanner)
 
     assert seen_at_announce == [wifi_mac]
+
 
 def test_async_as_scanner_init_force_rereads_registry_entries(bermuda_scanner, mock_coordinator, mock_scanner):
     """A forced init on a known scanner re-reads its registry entries.
@@ -252,6 +253,7 @@ async def test_scanner_resolves_real_registry(
     assert bermuda_scanner.address_ble_mac == "11:22:33:44:55:66"
     assert bermuda_scanner.name_devreg == "esphome"
     assert "uses `device_registry.devices`" not in caplog.text
+
 
 @pytest.mark.parametrize(
     ("first_char", "expected"),

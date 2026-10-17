@@ -172,6 +172,7 @@ def test_prune_devices_tolerates_duplicate_prune_entries(monkeypatch):
     assert stale_irk not in coordinator.devices
     assert fresh_irk in coordinator.devices
 
+
 def _scanner_coordinator(scanners, known):
     """A stand-in coordinator whose bluetooth manager reports `scanners`."""
     devices = {}
